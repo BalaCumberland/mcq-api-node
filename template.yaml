@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  ApiGatewayHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ApiGatewayHandler
+      Handler: index.handler  # ✅ Ensure handler points to index.js (not src/index.handler)
+      Runtime: nodejs18.x
+      MemorySize: 512
+      Timeout: 20
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        GetStudentAPI:
+          Type: Api
+          Properties:
+            Path: /students/get-by-email
+            Method: GET
+            RestApiId: !Ref ApiGateway
+        GetQuizByNameAPI:
+          Type: Api
+          Properties:
+            Path: /quiz/get-by-name
+            Method: GET
+            RestApiId: !Ref ApiGateway
+        GetUnattemptedQuizzesAPI:
+          Type: Api
+          Properties:
+            Path: /quiz/unattempted-quizzes
+            Method: GET
+            RestApiId: !Ref ApiGateway
+        RegisterStudentAPI:
+          Type: Api
+          Properties:
+            Path: /students/register
+            Method: POST
+            RestApiId: !Ref ApiGateway
+        UploadExcelAPI:
+          Type: Api
+          Properties:
+            Path: /questions/upload
+            Method: POST
+            RestApiId: !Ref ApiGateway
+        UpdateStudentAPI:
+          Type: Api
+          Properties:
+            Path: /students/update
+            Method: PUT
+            RestApiId: !Ref ApiGateway
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: MyApiGateway
+      StageName: Prod
+      Cors: # ✅ Enable CORS for all endpoints
+        AllowOrigin: "'*'"
+        AllowMethods: "'GET, POST, PUT, DELETE, OPTIONS'"
+        AllowHeaders: "'Content-Type, Authorization'"
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+
+Outputs:
+  APIBaseUrl:
+    Description: "Base URL for the API"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
