@@ -1,5 +1,13 @@
 const { connectDB, pool } = require("../../config/db");
 
+// ✅ Define Categories that Require Date Filtering
+const dateFilteredCategories = new Set([
+    "CLS11-MPC-EAMCET", "CLS11-MPC-JEEMAINS", "CLS11-MPC-JEEADV",
+    "CLS12-MPC-EAMCET", "CLS12-MPC-JEEMAINS", "CLS12-MPC-JEEADV",
+    "CLS11-BIPC-EAPCET", "CLS11-BIPC-NEET",
+    "CLS12-BIPC-EAPCET", "CLS12-BIPC-NEET"
+]);
+
 // ✅ AWS Lambda Handler with Connection Pooling
 exports.handler = async (event) => {
     let client;
@@ -16,12 +24,25 @@ exports.handler = async (event) => {
 
         console.log(`📌 Fetching quizzes for category: ${category}, excluding attempted quizzes for: ${studentEmail}`);
 
+        let quizFilterQuery = `SELECT quiz_name FROM quiz_questions WHERE category = $1`;
+        let queryParams = [category];
+
+        // ✅ Apply Date Filtering if Category Matches
+        if (dateFilteredCategories.has(category)) {
+            const currentMonth = new Date().getMonth() + 1; // ✅ Get current month (1-12)
+            const currentDate = new Date().getDate(); // ✅ Get current date (1-31)
+
+            const quizPattern = `${category}-${currentMonth.toString().padStart(2, '0')}-${currentDate.toString().padStart(2, '0')}-%`;
+            quizFilterQuery = `SELECT quiz_name FROM quiz_questions WHERE category = $1 AND quiz_name LIKE $2`;
+            queryParams.push(quizPattern);
+        }
+
+        console.log(`🔍 Executing Query: ${quizFilterQuery}`);
+        console.log(`🔍 Query Parameters: ${JSON.stringify(queryParams)}`);
+
         // ✅ Run both DB queries in parallel using `Promise.all()`
         const [allQuizzesResult, attemptedQuizzesResult] = await Promise.all([
-            client.query(
-                `SELECT quiz_name FROM quiz_questions WHERE category = $1`,
-                [category]
-            ),
+            client.query(quizFilterQuery, queryParams),
             client.query(
                 `SELECT jsonb_array_elements_text(quiz_names) AS quiz_name FROM student_quizzes WHERE email = $1`,
                 [studentEmail]
