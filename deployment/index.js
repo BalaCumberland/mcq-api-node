@@ -2,7 +2,6 @@ const handlers = {
     "/students/get-by-email": require("./src/handlers/student/getStudent").handler,
     "/students/register": require("./src/handlers/student/saveStudent").handler,
     "/students/update": require("./src/handlers/student/updateStudent").handler,
-    "/questions/upload": require("./src/handlers/questions/uploadExcel").handler,
     "/quiz/unattempted-quizzes": require("./src/handlers/questions/getUnAttemptedQuizNames").handler,
     "/quiz/get-by-name": require("./src/handlers/questions/getQuizByName").handler,
 };

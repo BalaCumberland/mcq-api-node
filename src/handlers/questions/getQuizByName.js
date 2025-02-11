@@ -7,7 +7,7 @@ exports.handler = async (event) => {
         client = await connectDB(); // ✅ Get a pooled connection
 
         // ✅ Extract Email and Quiz Name from Query Parameters
-        const email = event.queryStringParameters?.email;
+        const email = event.queryStringParameters?.email;   
         const quizName = event.queryStringParameters?.quizName; // ✅ Corrected field name
 
         if (!email) {
@@ -37,7 +37,7 @@ exports.handler = async (event) => {
             hint: q.hint || "",
             question: q.question,
             correctAnswer: q.correct_answer,  // ✅ Match response format
-            incorrectAnswers: q.incorrect_answers.split("~").map(answer => answer.trim()) // ✅ Convert string to array
+            incorrectAnswers: q.incorrect_answers // ✅ Convert string to array
         }));
 
         console.log(`✅ Quiz Data Fetched:`, quizData);
