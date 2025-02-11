@@ -36,12 +36,6 @@ Resources:
             Path: /students/register
             Method: POST
             RestApiId: !Ref ApiGateway
-        UploadExcelAPI:
-          Type: Api
-          Properties:
-            Path: /questions/upload
-            Method: POST
-            RestApiId: !Ref ApiGateway
         UpdateStudentAPI:
           Type: Api
           Properties:
