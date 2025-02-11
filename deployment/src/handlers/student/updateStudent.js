@@ -1,26 +1,27 @@
-const connectDB = require("../../config/db");
+const { connectDB, pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
-    const client = await connectDB();
-
-    let requestBody;
+    let client;
     try {
-        requestBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
-    } catch (err) {
-        return error("Invalid JSON format in request body", 400);
-    }
+        client = await connectDB(); // ✅ Get a pooled DB connection
 
-    const { email, phoneNumber, name, studentClass, paymentStatus } = requestBody;
+        let requestBody;
+        try {
+            requestBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+        } catch (err) {
+            return error("Invalid JSON format in request body", 400);
+        }
 
-    if (!email) {
-        return error("Missing 'email' parameter", 400);
-    }
+        const { email, phoneNumber, name, studentClass, paymentStatus } = requestBody;
 
-    try {
-        await client.query("BEGIN"); // Start transaction
+        if (!email) {
+            return error("Missing 'email' parameter", 400);
+        }
 
-        // ✅ Update only provided fields (allow empty string updates)
+        await client.query("BEGIN"); // ✅ Start transaction
+
+        // ✅ Update only provided fields
         let updateFields = [];
         let updateValues = [];
         let paramIndex = 2;
@@ -42,11 +43,12 @@ exports.handler = async (event) => {
             updateValues.push(paymentStatus);
         }
 
-        updateFields.push(`updated_time = NOW()`); // Always update timestamp
+        updateFields.push(`updated_time = NOW()`); // ✅ Always update timestamp
 
-        if (updateFields.length > 1) {  // Ensure there are fields to update
+        if (updateFields.length > 1) { // ✅ Ensure fields exist before running update
             const studentQuery = `
-                UPDATE students SET ${updateFields.join(", ")}
+                UPDATE students 
+                SET ${updateFields.join(", ")}
                 WHERE email = $1
                 RETURNING id, email, ${name !== undefined ? "name," : ""} 
                 ${phoneNumber !== undefined ? "phone_number," : ""} 
@@ -56,18 +58,21 @@ exports.handler = async (event) => {
 
             if (result.rowCount === 0) {
                 await client.query("ROLLBACK");
-                await client.end();
                 return error("No student found with the provided email", 404);
             }
+        } else {
+            await client.query("ROLLBACK");
+            return error("No valid fields to update", 400);
         }
 
-        await client.query("COMMIT"); // Commit transaction
-        await client.end();
+        await client.query("COMMIT"); // ✅ Commit transaction
 
         return success({ message: "Student updated successfully" });
     } catch (err) {
-        await client.query("ROLLBACK"); // Rollback if error occurs
-        await client.end();
-        return error(err.message);
+        await client.query("ROLLBACK"); // ✅ Rollback if error occurs
+        console.error("❌ Update Error:", err);
+        return error("Internal Server Error", 500);
+    } finally {
+        if (client) client.release(); // ✅ Release connection back to pool
     }
 };

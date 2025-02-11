@@ -1,27 +1,31 @@
-const connectDB = require("../../config/db");
+const { connectDB, pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
-    const client = await connectDB();
-
-    let requestBody;
+    let client;
     try {
-        requestBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
-    } catch (err) {
-        return error("Invalid JSON format in request body", 400);
-    }
+        client = await connectDB(); // ✅ Get a pooled DB connection
 
-    // Extract fields
-    const { email, name, phoneNumber, studentClass, paymentStatus, quizNames } = requestBody;
+        let requestBody;
+        try {
+            requestBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+        } catch (err) {
+            return error("Invalid JSON format in request body", 400);
+        }
 
-    if (!email) {
-        return error("Missing required field: 'email'", 400);
-    }
+        // ✅ Extract fields
+        const { email, name, phoneNumber, studentClass, paymentStatus } = requestBody;
 
-    try {
+        if (!email) {
+            return error("Missing required field: 'email'", 400);
+        }
+
+        // ✅ Insert query (Only required columns)
         const query = `
             INSERT INTO students (email, name, phone_number, student_class, payment_status) 
-            VALUES ($1, $2, $3, $4, $5) RETURNING *;
+            VALUES ($1, $2, $3, $4, $5) 
+            ON CONFLICT (email) DO NOTHING 
+            RETURNING id, email, name, student_class, payment_status;
         `;
 
         const values = [
@@ -33,11 +37,16 @@ exports.handler = async (event) => {
         ];
 
         const result = await client.query(query, values);
-        await client.end();
+
+        if (result.rowCount === 0) {
+            return error("Student already exists", 409);
+        }
 
         return success({ message: "Student created successfully", student: result.rows[0] }, 201);
     } catch (err) {
-        await client.end();
-        return error(err.message);
+        console.error("❌ Database Error:", err);
+        return error("Internal Server Error", 500);
+    } finally {
+        if (client) client.release(); // ✅ Release connection back to the pool
     }
 };

@@ -1,26 +1,28 @@
-const connectDB = require("../../config/db");
+const { connectDB, pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
-    const client = await connectDB();
-    
-    // Extract email from query parameters (GET requests do not have a body)
     const email = event.queryStringParameters?.email;
-
     if (!email) {
         return error("Missing 'email' query parameter", 400);
     }
 
+    let client;
     try {
-        const result = await client.query("SELECT * FROM students WHERE email = $1", [email]);
-        await client.end();
+        client = await connectDB(); // ✅ Get pooled connection
+
+        const query = "SELECT id, email, name, student_class, payment_status FROM students WHERE email = $1";
+        const result = await client.query(query, [email]);
 
         if (result.rows.length === 0) {
             return error("Student not found", 404);
         }
+
         return success(result.rows[0]);
     } catch (err) {
-        await client.end();
-        return error(err.message);
+        console.error("❌ Error Fetching Student:", err);
+        return error("Internal Server Error", 500);
+    } finally {
+        if (client) client.release(); // ✅ Release connection back to the pool
     }
 };
