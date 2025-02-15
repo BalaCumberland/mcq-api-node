@@ -1,4 +1,4 @@
-const { connectDB, pool } = require("../../config/db");
+const { pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
@@ -9,7 +9,7 @@ exports.handler = async (event) => {
 
     let client;
     try {
-        client = await connectDB(); // ✅ Get pooled connection
+        client = await pool.connect(); // ✅ Get pooled connection
 
         const query = "SELECT id, email, name, student_class, payment_status FROM students WHERE email = $1";
         const result = await client.query(query, [email]);

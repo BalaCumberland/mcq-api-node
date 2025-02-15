@@ -1,4 +1,4 @@
-const { connectDB, pool } = require("../../config/db");
+const { pool } = require("../../config/db");
 
 // ✅ Define Categories that Require Date Filtering
 const dateFilteredCategories = new Set([
@@ -12,7 +12,7 @@ const dateFilteredCategories = new Set([
 exports.handler = async (event) => {
     let client;
     try {
-        client = await connectDB(); // ✅ Get a pooled DB connection
+        client = await pool.connect(); // ✅ Get a pooled DB connection
 
         // ✅ Extract Category & Student Email from Query Parameters
         const category = event.queryStringParameters?.category;

@@ -9,7 +9,7 @@ const pool = new Pool({
     ssl: {
         rejectUnauthorized: false // ✅ Allows self-signed SSL
     },
-    max: 10, // ✅ Max 10 connections in the pool
+    max: 50, // ✅ Max 10 connections in the pool
     idleTimeoutMillis: 30000, // ✅ Close idle clients after 30 sec
     connectionTimeoutMillis: 2000, // ✅ Timeout for new connections
 });

@@ -1,10 +1,10 @@
-const { connectDB, pool } = require("../../config/db");
+const { pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
     let client;
     try {
-        client = await connectDB(); // ✅ Get a pooled DB connection
+        client = await pool.connect(); // ✅ Get a pooled DB connection
 
         let requestBody;
         try {
