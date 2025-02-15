@@ -1,11 +1,11 @@
-const { connectDB, pool } = require("../../config/db");
+const { pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
 
 exports.handler = async (event) => {
     
     let client;
     try {
-        client = await connectDB();
+        client =await pool.connect();
         // ✅ Extract Email and Quiz Name from Query Parameters
         const email = event.queryStringParameters?.email;
         const quizName = event.queryStringParameters?.quizName; // ✅ Corrected field name
@@ -68,5 +68,7 @@ exports.handler = async (event) => {
         await client.query("ROLLBACK"); // Rollback if error occurs
         await client.end();
         return error(err.message);
+    } finally {
+        if (client) client.release(); // ✅ Release connection back to the pool
     }
 };
