@@ -33,7 +33,7 @@ exports.handler = async (event) => {
 
         // ✅ Transform `questions` JSONB into the required format
         quizData.questions = quizData.questions.map(q => ({
-            hint: q.hint || "",
+            explanation: q.explanation || "",
             question: q.question,
             correctAnswer: q.correctAnswer,  // ✅ Fix field names
             incorrectAnswers: q.incorrectAnswers  // ✅ Convert incorrect answers to array

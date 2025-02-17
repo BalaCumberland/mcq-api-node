@@ -51,7 +51,7 @@ exports.handler = async (event) => {
             await client.query("BEGIN"); // Start transaction
 
             for (const row of sheetData) {
-                const { Hint, Question, CorrectAnswer, IncorrectAnswers } = row;
+                const { explanation, Question, CorrectAnswer, IncorrectAnswers } = row;
 
                 // ✅ Convert IncorrectAnswers String to Array
                 const incorrectAnswersArray = IncorrectAnswers
@@ -59,9 +59,9 @@ exports.handler = async (event) => {
                     : [];
 
                 await client.query(
-                    `INSERT INTO quiz_questions (category, duration, hint, question, correct_answer, incorrect_answers, upload_time)
+                    `INSERT INTO quiz_questions (category, duration, explanation, question, correct_answer, incorrect_answers, upload_time)
                      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                    [category, duration, Hint, Question, CorrectAnswer, incorrectAnswersArray, uploadTime]
+                    [category, duration, explanation, Question, CorrectAnswer, incorrectAnswersArray, uploadTime]
                 );
             }
 
