@@ -14,14 +14,15 @@ exports.handler = async (event) => {
     try {
         client = await pool.connect(); // ✅ Get a pooled DB connection
 
-        // ✅ Extract Category & Student Email from Query Parameters
+        // ✅ Extract & Normalize Email and Category
         const category = event.queryStringParameters?.category;
-        const studentEmail = event.queryStringParameters?.email;
+        let studentEmail = event.queryStringParameters?.email;
 
         if (!category || !studentEmail) {
             return createResponse(400, { error: "Category and student email are required." });
         }
 
+        studentEmail = studentEmail.toLowerCase(); // ✅ Normalize email for case-insensitive comparison
         console.log(`📌 Fetching quizzes for category: ${category}, excluding attempted quizzes for: ${studentEmail}`);
 
         let quizFilterQuery = `SELECT quiz_name FROM quiz_questions WHERE category = $1`;
@@ -44,7 +45,7 @@ exports.handler = async (event) => {
         const [allQuizzesResult, attemptedQuizzesResult] = await Promise.all([
             client.query(quizFilterQuery, queryParams),
             client.query(
-                `SELECT jsonb_array_elements_text(quiz_names) AS quiz_name FROM student_quizzes WHERE email = $1`,
+                `SELECT jsonb_array_elements_text(quiz_names) AS quiz_name FROM student_quizzes WHERE LOWER(email) = $1`,
                 [studentEmail]
             )
         ]);

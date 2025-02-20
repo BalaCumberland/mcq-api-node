@@ -7,12 +7,14 @@ exports.handler = async (event) => {
         return error("Missing 'email' query parameter", 400);
     }
 
+    const normalizedEmail = email.toLowerCase(); // ✅ Normalize email
+
     let client;
     try {
         client = await pool.connect(); // ✅ Get pooled connection
 
-        const query = "SELECT id, email, name, student_class, payment_status FROM students WHERE email = $1";
-        const result = await client.query(query, [email]);
+        const query = "SELECT id, email, name, student_class, payment_status FROM students WHERE LOWER(email) = LOWER($1)";
+        const result = await client.query(query, [normalizedEmail]);
 
         if (result.rows.length === 0) {
             return error("Student not found", 404);

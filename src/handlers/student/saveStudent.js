@@ -13,14 +13,16 @@ exports.handler = async (event) => {
             return error("Invalid JSON format in request body", 400);
         }
 
-        // ✅ Extract fields
+        // ✅ Extract and Normalize Fields
         const { email, name, phoneNumber, studentClass, paymentStatus } = requestBody;
 
         if (!email) {
             return error("Missing required field: 'email'", 400);
         }
 
-        // ✅ Insert query (Only required columns)
+        const normalizedEmail = email.toLowerCase(); // ✅ Convert email to lowercase
+
+        // ✅ Insert Query (Ensuring Case-Insensitive Uniqueness)
         const query = `
             INSERT INTO students (email, name, phone_number, student_class, payment_status) 
             VALUES ($1, $2, $3, $4, $5) 
@@ -29,7 +31,7 @@ exports.handler = async (event) => {
         `;
 
         const values = [
-            email,
+            normalizedEmail,
             name || null,
             phoneNumber || null,
             studentClass || "DEMO",
