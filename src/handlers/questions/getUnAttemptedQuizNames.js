@@ -33,7 +33,7 @@ exports.handler = async (event) => {
             const currentMonth = new Date().getMonth() + 1; // ✅ Get current month (1-12)
             const currentDate = new Date().getDate(); // ✅ Get current date (1-31)
 
-            const quizPattern = `${category}-${currentMonth.toString().padStart(2, '0')}-${currentDate.toString().padStart(2, '0')}-%`;
+            const quizPattern = `${category}-${currentMonth}-${currentDate}-%`;
             quizFilterQuery = `SELECT quiz_name FROM quiz_questions WHERE category = $1 AND quiz_name LIKE $2`;
             queryParams.push(quizPattern);
         }
