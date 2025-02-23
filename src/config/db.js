@@ -1,11 +1,11 @@
 const { Pool } = require("pg");
 
 const pool = new Pool({
-    user: "Kittu",
-    host: "mcq-db.clki64gmuinh.us-east-2.rds.amazonaws.com",
-    database: "mcqdb",
-    password: "Kittussk99",
-    port: 5432,
+    user: process.env.POSTGRESQL_USER,
+    host: process.env.POSTGRESQL_HOST,
+    database: process.env.POSTGRESQL_DB,
+    password: process.env.POSTGRESQL_PW,
+    port: process.env.POSTGRESQL_PORT,
     ssl: {
         rejectUnauthorized: false // ✅ Allows self-signed SSL
     },
