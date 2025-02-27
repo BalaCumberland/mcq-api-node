@@ -8,7 +8,9 @@ const handlers = {
   "/quiz/get-by-name": require("./src/handlers/questions/getQuizByName").handler,
 };
 
-// Define CORS Headers
+// Define paths that do NOT require authentication
+const publicPaths = ["/students/register"];
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*", // Allow all origins (modify if needed)
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -34,39 +36,43 @@ exports.handler = async (event) => {
     };
   }
 
-  // Check for Authorization header
-  const authHeader =
-    event.headers && (event.headers.Authorization || event.headers.authorization);
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return {
-      statusCode: 401,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Unauthorized" }),
-    };
-  }
-
-  const idToken = authHeader.split("Bearer ")[1];
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    event.decodedToken = decodedToken; // Optional: pass user info along
-  } catch (error) {
-    return {
-      statusCode: 401,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Unauthorized", details: error.message }),
-    };
-  }
-
   // Normalize path (API Gateway uses event.path, Lambda URLs use event.rawPath)
   let functionName = event.rawPath || event.path;
   console.log("🚀 Function Detected:", functionName);
 
+  // If the path isn't in our handlers list, return error
   if (!functionName || !handlers[functionName]) {
     return {
       statusCode: 400,
       headers: corsHeaders,
       body: JSON.stringify({ error: "Invalid API Route", received: functionName }),
     };
+  }
+
+  // Skip auth check if the path is public
+  if (!publicPaths.includes(functionName)) {
+    // Check for Authorization header
+    const authHeader =
+      event.headers && (event.headers.Authorization || event.headers.authorization);
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return {
+        statusCode: 401,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: "Unauthorized" }),
+      };
+    }
+  
+    const idToken = authHeader.split("Bearer ")[1];
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      event.decodedToken = decodedToken; // Optional: pass user info along
+    } catch (error) {
+      return {
+        statusCode: 401,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: "Unauthorized", details: error.message }),
+      };
+    }
   }
 
   try {
