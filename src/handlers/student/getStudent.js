@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     try {
         client = await pool.connect(); // ✅ Get pooled connection
 
-        const query = "SELECT id, email, name, student_class, payment_status FROM students WHERE LOWER(email) = LOWER($1)";
+        const query = "SELECT id, email, name, student_class, payment_status, phone_number, sub_exp_date, amount, payment_time FROM students WHERE LOWER(email) = LOWER($1)";
         const result = await client.query(query, [normalizedEmail]);
 
         if (result.rows.length === 0) {
