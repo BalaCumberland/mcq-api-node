@@ -14,7 +14,7 @@ exports.handler = async (event) => {
         }
 
         // ✅ Extract and Normalize Fields
-        const { email, name, phoneNumber, studentClass, paymentStatus } = requestBody;
+        const { email, name, phoneNumber, studentClass} = requestBody;
 
         if (!email) {
             return error("Missing required field: 'email'", 400);
@@ -24,18 +24,17 @@ exports.handler = async (event) => {
 
         // ✅ Insert Query (Ensuring Case-Insensitive Uniqueness)
         const query = `
-            INSERT INTO students (email, name, phone_number, student_class, payment_status) 
+            INSERT INTO students (email, name, phone_number, student_class) 
             VALUES ($1, $2, $3, $4, $5) 
             ON CONFLICT (email) DO NOTHING 
-            RETURNING id, email, name, student_class, payment_status;
+            RETURNING id, email, name, student_class;
         `;
 
         const values = [
             normalizedEmail,
             name || null,
             phoneNumber || null,
-            studentClass || "DEMO",
-            paymentStatus || "UNPAID"
+            studentClass || "DEMO"
         ];
 
         const result = await client.query(query, values);
