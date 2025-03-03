@@ -25,7 +25,7 @@ exports.handler = async (event) => {
         // ✅ Insert Query (Ensuring Case-Insensitive Uniqueness)
         const query = `
             INSERT INTO students (email, name, phone_number, student_class) 
-            VALUES ($1, $2, $3, $4, $5) 
+            VALUES ($1, $2, $3, $4) 
             ON CONFLICT (email) DO NOTHING 
             RETURNING id, email, name, student_class;
         `;
