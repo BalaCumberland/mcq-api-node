@@ -14,7 +14,7 @@ exports.handler = async (event) => {
         client = await pool.connect(); // ✅ Get pooled connection
 
         const query = `
-            SELECT id, email, name, student_class, phone_number, sub_exp_date, amount, payment_time 
+            SELECT id, email, name, student_class, phone_number, sub_exp_date, updated_by, amount, payment_time 
             FROM students 
             WHERE LOWER(email) = LOWER($1)
         `;
