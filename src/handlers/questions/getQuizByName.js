@@ -10,6 +10,27 @@ exports.handler = async (event) => {
         let email = event.queryStringParameters?.email;
         const quizName = event.queryStringParameters?.quizName;
 
+        const query = `
+        SELECT id, email, name, student_class, phone_number, sub_exp_date, updated_by, amount, payment_time 
+        FROM students 
+        WHERE LOWER(email) = LOWER($1)`;
+        
+        const resultStudent = await client.query(query, [email]);
+
+        if (resultStudent.rows.length === 0) {
+            return error("Student not found", 404);
+        }
+
+        let student = resultStudent.rows[0];
+
+        // ✅ Get today's system date in YYYY-MM-DD format
+        const today = new Date().toISOString().split("T")[0];
+
+        // ✅ Handle NULL `sub_exp_date` - Default to "UNPAID"
+        if (!student.sub_exp_date || student.sub_exp_date < today) {
+            return error("Student not paid", 400);
+        } 
+
         if (!email) return error("Missing 'email' parameter", 400);
         if (!quizName) return error("Missing 'quizName' parameter", 400);
 
