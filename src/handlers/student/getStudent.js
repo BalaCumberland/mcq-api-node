@@ -1,5 +1,6 @@
 const { pool } = require("../../config/db");
 const { success, error } = require("../../utils/response");
+const VALID_CATEGORIES = require("../../handlers/questions/categories");
 
 exports.handler = async (event) => {
     const email = event.queryStringParameters?.email;
@@ -35,6 +36,9 @@ exports.handler = async (event) => {
         } else {
             student.payment_status = "PAID";
         }
+
+        const classPrefix = student.student_class;
+        student.subjects = Array.from(VALID_CATEGORIES).filter(category => category.startsWith(classPrefix));
 
         return success(student);
     } catch (err) {
