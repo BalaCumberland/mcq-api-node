@@ -3,7 +3,6 @@ const admin = require('./src/config/firebase');
 const handlers = {
   "/students/get-by-email": require("./src/handlers/student/getStudent").handler,
   "/students/register": require("./src/handlers/student/saveStudent").handler,
-  "/students/update": require("./src/handlers/student/updateStudent").handler,
   "/quiz/unattempted-quizzes": require("./src/handlers/questions/getUnAttemptedQuizNames").handler,
   "/quiz/get-by-name": require("./src/handlers/questions/getQuizByName").handler,
 };
@@ -66,6 +65,7 @@ exports.handler = async (event) => {
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       event.decodedToken = decodedToken; // Optional: pass user info along
+      event.email = decodedToken.email || null; // ✅ Set email on the event
     } catch (error) {
       return {
         statusCode: 401,

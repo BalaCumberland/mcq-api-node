@@ -35,6 +35,9 @@ exports.handler = async (event) => {
         if (!quizName) return error("Missing 'quizName' parameter", 400);
 
         email = email.toLowerCase(); // ✅ Normalize email
+          if(event.email && event.email.toLowerCase() !== studentEmail?.toLowerCase()) {
+            return error("Email in request body does not match authenticated user email", 403);
+        }
         console.log(`📌 Fetching quiz questions for: ${quizName}, Email: ${email}`);
 
         // ✅ Fetch Quiz Data from PostgreSQL

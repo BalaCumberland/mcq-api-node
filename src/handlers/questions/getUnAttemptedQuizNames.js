@@ -18,6 +18,9 @@ exports.handler = async (event) => {
         // ✅ Extract & Normalize Email and Category
         const category = event.queryStringParameters?.category;
         let studentEmail = event.queryStringParameters?.email;
+         if(event.email && event.email.toLowerCase() !== studentEmail?.toLowerCase()) {
+            return error("Email in request body does not match authenticated user email", 403);
+        }
 
         if (!category || !studentEmail) {
             return createResponse(400, { error: "Category and student email are required." });

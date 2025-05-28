@@ -9,6 +9,9 @@ exports.handler = async (event) => {
     }
 
     const normalizedEmail = email.toLowerCase(); // ✅ Normalize email
+     if(event.email && event.email.toLowerCase() !== normalizedEmail) {
+            return error("Email in request body does not match authenticated user email", 403);
+        }
 
     let client;
     try {
