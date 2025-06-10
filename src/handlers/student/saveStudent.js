@@ -21,9 +21,7 @@ exports.handler = async (event) => {
         }
 
         const normalizedEmail = email.toLowerCase(); // ✅ Convert email to lowercase
-        if(event.email && event.email.toLowerCase() !== normalizedEmail) {
-            return error("Email in request body does not match authenticated user email", 403);
-        }
+      
 
         // ✅ Insert Query (Ensuring Case-Insensitive Uniqueness)
         const query = `
