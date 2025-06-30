@@ -40,7 +40,7 @@ exports.handler = async (event) => {
         const resultStudent = await client.query(query, [studentEmail]);
 
         if (resultStudent.rows.length === 0) {
-            return error("Student not found", 404);
+            return [error("Student not found", 404)];
         }
 
         let student = resultStudent.rows[0];
@@ -80,7 +80,7 @@ exports.handler = async (event) => {
         ]);
 
         if (allQuizzesResult.rows.length === 0) {
-            return createResponse(404, { error: `No quizzes found for category: ${category}` });
+            return createResponse(200, { unattempted_quizzes: [] });
         }
 
         const allQuizNames = allQuizzesResult.rows.map(row => row.quiz_name);
